@@ -2,6 +2,7 @@ import os
 import re
 import ftplib
 import subprocess
+import urllib
 
 ###########################################################
 # orellana_installer - installs orellana and its dependents
@@ -17,9 +18,11 @@ import subprocess
 #downloads plink
 def install_plink():
         #plink is not installed
+        print("connecting to plink remote server")
         ftp = ftplib.FTP('ftp.chiark.greenend.org.uk', 'anonymous', '@anonymous')
         ftp.cwd('users/sgtatham/putty-latest/x86')
-        
+
+        print("downloading plink")
         #downloading plink, printing out what ever the output of plink download is
         print (ftp.retrbinary('RETR plink.exe', open('plink.exe', 'wb').write))
         ftp.quit()
@@ -36,72 +39,43 @@ def copy_plink():
         os.system(command)
         return True
 
-# returns a bool if error during command or not 
-# output('dsjfjds') -> false 
-# output('echo hello') -> true
-
-def output(command):
-        f = os.popen(command, "r")
-        lines = f.readlines()
-        f.close()
-        if (len(lines) == 0):   
-                return False
-        else:
-                return True 
 
 ###########################################################
 
 #installing pLink
 
-#testing to see if plink is installed
-plink_test = output("plink --version")
-
 #checking for existing orellana directory, making if not
-if (os.path.exists("%USERPROFILE%orellana")):
+if (os.path.exists(r"C:\Users\orellana")):
         #directory exists
         print("found orellana directory")
 
 else:
-        os.mkdir("%USERPROFILE%orellana")
+        os.mkdir(r"C:\Users\orellana")
 
-os.chdir("%USERPROFILE%orellana")
+os.chdir(r"C:\Users\orellana")
+
+#creating config file
+session_name = input("Putty session name: ")
+home = input("Cluster IP Address: ")
+
+print(r"These values can be changed in the orellana.conf file in C:\Users\orellana")
+
+conf = open("orellana.conf", mode="w")
+conf_write = "".join( (session_name, "\n", home, "\n") )
+conf.write(conf_write)
+conf.close()
 
 ####################
 # installing plink #
 ####################
 
-print("checking for plink")
-
-if (plink_test):
-        print("plink found, copying to orellana directory")
-        copy_plink()
-
-else:
-        plink_dir = input("plink not found: look in other directory? [dir/N] ")
-        if (plink_dir == '' or plink_dir == 'N'):
-                #not looking anywhere else, installing plink
-                install_plink()
-
-        else:
-                print(plink_dir)
-                os.chdir(plink_dir)
-                print("looking for plink")
-                print(os.chdir(plink_dir))
-                if (output('\.plink --version')):
-                        copy_plink()
-
-                else:
-                        print("plink not found here")
-                        print("installing plink in orellana directory")
-                        os.chdir()
-                        os.chdir("orellana")
-                        install_plink()
-
+print("installing plink in orellana")
+install_plink()
 
 print("plink installed")
 
 #adding orellana to path 
-os.system("set PATH=%PATH%;%USERPROFILE\orellana")
+os.system(r"set PATH=%PATH%;C:\Users\orellana")
 
 ################################
 # setting up web server on AWS #
@@ -128,7 +102,6 @@ print("close command prompt window to finish")
 # running init web server script via newly-installed plink
 
 print("setting up apache on server")
-session_name = r'orellana'
 
 webInit_command = "".join( ("plink ", session_name, " -m web_init.sh") )
 print(webInit_command)
@@ -148,3 +121,5 @@ sync_command = "".join( ("plink ", session_name, " -m sync.sh") )
 print(sync_command)
 os.system(sync_command)
 
+#### downloading main orellana python file ####
+urllib.urlretrieve("https://raw.githubusercontent.com/jo-hnkennedy/orellana/master/orellana.py", "orellana.py")
