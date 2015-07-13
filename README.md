@@ -13,10 +13,11 @@ prerequisites:
 
     an Amazon EMR cluster already set up
   
-run orellana_installer.py - it will ask for a Putty session_name and a host ip.
+run orellana_installer.py - it will ask for a Putty session_name and the ip of the master node on cluster
 
 will create directory c:\users\orellana
 
 future functionality (maybe):
-  creates a web server with the logs on a remote server so no network transfer is needed
+
+      creates a web server with the logs on a remote server so no network transfer is needed
   
